@@ -2,7 +2,7 @@ use anyhow::Result;
 use dialoguer::{MultiSelect, Select};
 
 use crate::git::run_git_silent;
-use crate::status::{get_repo_root, PorcelainStatus};
+use crate::status::{PorcelainStatus, get_repo_root};
 
 pub fn stage_targets(targets: &[String], all: bool, tracked: bool) -> Result<()> {
     let is_interactive = targets.is_empty() && !all && !tracked;

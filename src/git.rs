@@ -1,6 +1,6 @@
 use std::process::Command as StdCommand;
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 
 use crate::status::invalidate_porcelain_cache;
 

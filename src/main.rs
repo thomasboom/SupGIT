@@ -3,7 +3,7 @@ mod commands;
 mod git;
 mod status;
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use clap::Parser;
 use cli::{Cli, SupgitCommand};
 use commands::{
@@ -175,11 +175,11 @@ fn execute_command(command: SupgitCommand) -> Result<()> {
         SupgitCommand::Update => {
             run_self_update(None)?;
         }
-        SupgitCommand::Alias { dry_run } => {
-            run_alias(dry_run)?;
+        SupgitCommand::Alias { dry_run, git, sg } => {
+            run_alias(dry_run, git, sg)?;
         }
-        SupgitCommand::Unalias { dry_run } => {
-            run_unalias(dry_run)?;
+        SupgitCommand::Unalias { dry_run, git, sg } => {
+            run_unalias(dry_run, git, sg)?;
         }
     }
 
@@ -195,8 +195,12 @@ fn print_explanations() {
     println!("  status  – show what is staged vs unstaged (`--short` uses `git status -sb`).");
     println!("  log     – view history (`--short` shows compact entries).");
     println!("  diff    – compare working changes (`--staged` shows what will be committed).");
-    println!("  branch  – list and checkout branches (interactive); use -c <name> to create, -d <name> to delete a branch.");
-    println!("  reset   – discard changes (interactive, or use --all/--staged/--unstaged/--tracked/--untracked).");
+    println!(
+        "  branch  – list and checkout branches (interactive); use -c <name> to create, -d <name> to delete a branch."
+    );
+    println!(
+        "  reset   – discard changes (interactive, or use --all/--staged/--unstaged/--tracked/--untracked)."
+    );
     println!(
         "  push    – send commits to your remote (uses Git's defaults unless you pass `--remote`/`--branch`)."
     );
@@ -206,7 +210,7 @@ fn print_explanations() {
     );
     println!("  sync    – fetch, pull, and push in one command with graceful error handling.");
     println!("  clone   – clone a repository and automatically change into it.");
-    println!("  alias   – add 'git' alias pointing to supgit in your shell config.");
-    println!("  unalias – remove the 'git' alias from your shell config.");
+    println!("  alias   – add alias (--git or --sg, or shows selector).");
+    println!("  unalias – remove alias (--git or --sg, or shows selector).");
     println!("  update  – update supgit to the latest version via cargo.");
 }

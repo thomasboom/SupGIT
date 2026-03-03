@@ -101,9 +101,17 @@ pub enum SupgitCommand {
     Alias {
         #[arg(long)]
         dry_run: bool,
+        #[arg(long)]
+        git: bool,
+        #[arg(long)]
+        sg: bool,
     },
     Unalias {
         #[arg(long)]
         dry_run: bool,
+        #[arg(long)]
+        git: bool,
+        #[arg(long)]
+        sg: bool,
     },
 }

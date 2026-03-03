@@ -1,10 +1,10 @@
 use std::process::Command as StdCommand;
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use dialoguer::{Confirm, Input, Select};
 
 use crate::git::{run_git_quiet, run_git_silent};
-use crate::status::{get_current_branch, get_repo_root, PorcelainStatus};
+use crate::status::{PorcelainStatus, get_current_branch, get_repo_root};
 
 pub fn run_commit(
     message: Option<String>,

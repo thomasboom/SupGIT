@@ -1,4 +1,4 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use std::env;
 use std::process::Command;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -58,7 +58,9 @@ pub fn check_and_auto_update() {
 
             if combined.contains("Installing supgit") || combined.contains("Would install") {
                 println!("Update available for supgit");
-            } else if combined.contains("is already installed") || combined.contains("Already up to date") {
+            } else if combined.contains("is already installed")
+                || combined.contains("Already up to date")
+            {
                 println!("No updates available");
             } else {
                 println!("✓ Checked for updates");
