@@ -49,7 +49,7 @@ fn main() {
 }
 
 fn run() -> Result<()> {
-    let _ = check_and_auto_update();
+    check_and_auto_update();
 
     let cli = match Cli::try_parse() {
         Ok(cli) => cli,

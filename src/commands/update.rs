@@ -32,29 +32,42 @@ fn record_update_check() {
     }
 }
 
-pub fn check_and_auto_update() -> Result<()> {
+pub fn check_and_auto_update() {
     if env::var("SupGIT_SKIP_UPDATE_CHECK").is_ok() {
-        return Ok(());
+        return;
     }
 
     if let Some(elapsed) = get_time_since_last_check()
         && elapsed.as_secs() < UPDATE_CHECK_INTERVAL_SECS
     {
-        return Ok(());
+        return;
     }
 
     record_update_check();
 
-    let status = Command::new("cargo")
-        .args(["install", "supgit"])
-        .status()
-        .context("Failed to run cargo install")?;
+    if let Err(e) = (|| -> Result<()> {
+        let output = Command::new("cargo")
+            .args(["install", "supgit", "--dry-run"])
+            .output()
+            .context("failed to check for updates - is cargo installed?")?;
 
-    if status.success() {
-        println!("✓ Checked for updates");
+        if output.status.success() {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            let combined = format!("{}{}", stdout, stderr);
+
+            if combined.contains("Installing supgit") || combined.contains("Would install") {
+                println!("Update available for supgit");
+            } else if combined.contains("is already installed") || combined.contains("Already up to date") {
+                println!("No updates available");
+            } else {
+                println!("✓ Checked for updates");
+            }
+        }
+        Ok(())
+    })() {
+        eprintln!("warning: update check failed: {}", e);
     }
-
-    Ok(())
 }
 
 pub fn run_self_update(_target_version: Option<&str>) -> Result<()> {
