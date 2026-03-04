@@ -4,8 +4,8 @@ version = "0.3.0"
 edition = "2024"
 description = "SupGit, the GIT CLI simplified."
 license = "AGPL-3.0-only"
-repository = "https://github.com/ThomasNowProductions/SupGIT"
-homepage = "https://github.com/ThomasNowProductions/SupGIT"
+repository = "https://github.com/thomasboom/SupGIT"
+homepage = "https://github.com/thomasboom/SupGIT"
 
 [dependencies]
 anyhow = "1.0"
