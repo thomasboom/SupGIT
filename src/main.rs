@@ -8,8 +8,8 @@ use clap::Parser;
 use cli::{Cli, SupgitCommand};
 use commands::{
     check_and_auto_update, create_branch, delete_branch, restore_stage, run_alias,
-    run_branch_interactive, run_clone, run_commit, run_pull, run_push, run_reset, run_self_update,
-    run_sync, run_unalias, stage_targets,
+    run_branch_interactive, run_clone, run_commit, run_diff, run_pull, run_push, run_reset,
+    run_self_update, run_sync, run_unalias, stage_targets,
 };
 use git::{check_in_repo, run_git, run_git_silent};
 use strsim::jaro_winkler;
@@ -125,13 +125,7 @@ fn execute_command(command: SupgitCommand) -> Result<()> {
             }
         }
         SupgitCommand::Diff { path, staged } => {
-            if staged {
-                run_git(&["diff", "--staged"])?;
-            } else if let Some(path) = path {
-                run_git(&["diff", path.as_str()])?;
-            } else {
-                run_git(&["diff"])?;
-            }
+            run_diff(path, staged)?;
         }
         SupgitCommand::Reset {
             all,
