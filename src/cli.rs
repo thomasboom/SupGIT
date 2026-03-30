@@ -8,6 +8,15 @@ use clap::{Parser, Subcommand};
     propagate_version = true
 )]
 pub struct Cli {
+    #[arg(short = 'n', long, global = true)]
+    pub non_interactive: bool,
+
+    #[arg(short, long, global = true)]
+    pub quiet: bool,
+
+    #[arg(short, long, global = true)]
+    pub verbose: bool,
+
     #[arg(long, global = true)]
     pub explain: bool,
 

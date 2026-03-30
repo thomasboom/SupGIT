@@ -4,10 +4,21 @@ use dialoguer::{MultiSelect, Select};
 use crate::git::run_git_silent;
 use crate::status::{PorcelainStatus, get_repo_root};
 
-pub fn stage_targets(targets: &[String], all: bool, tracked: bool) -> Result<()> {
+pub fn stage_targets(
+    targets: &[String],
+    all: bool,
+    tracked: bool,
+    non_interactive: bool,
+) -> Result<()> {
     let is_interactive = targets.is_empty() && !all && !tracked;
 
     if is_interactive {
+        if non_interactive {
+            run_git_silent(&["add", "-A"])?;
+            println!("✓ Staged all files (non-interactive mode)");
+            return Ok(());
+        }
+
         let selection = Select::new()
             .with_prompt("What would you like to stage?")
             .items(&["All files", "Tracked files only", "Specific files"])

@@ -14,9 +14,15 @@ pub fn run_commit(
     push: bool,
     amend: bool,
     no_verify: bool,
+    non_interactive: bool,
 ) -> Result<()> {
     let is_interactive = message.is_none() && !all && !staged && !unstaged;
+
     let (all, staged, unstaged, commit_msg, push, custom_files) = if is_interactive {
+        if non_interactive {
+            bail!("commit requires --message in non-interactive mode");
+        }
+
         let scope = Select::new()
             .with_prompt("What would you like to commit?")
             .items(&[
@@ -88,35 +94,39 @@ pub fn run_commit(
             .unwrap_or(false);
 
         if has_commits {
-            eprintln!("⚠ Warning: amending a commit that may have been pushed can cause issues.");
+            eprintln!("Warning: amending a commit that may have been pushed can cause issues.");
             eprintln!("  Use --no-verify to skip this check if you're sure.");
-            let confirm = Confirm::new()
-                .with_prompt("Continue with amend?")
-                .default(false)
-                .interact()?;
-            if !confirm {
-                println!("Aborted.");
-                return Ok(());
+            if non_interactive {
+                eprintln!("(non-interactive mode, proceeding with amend)");
+            } else {
+                let confirm = Confirm::new()
+                    .with_prompt("Continue with amend?")
+                    .default(false)
+                    .interact()?;
+                if !confirm {
+                    println!("Aborted.");
+                    return Ok(());
+                }
             }
         }
     }
 
     if all {
         run_git_silent(&["add", "-A"])?;
-        println!("→ Staged all files");
+        println!("Staged all files");
     } else if unstaged {
         run_git_silent(&["add", "-u"])?;
-        println!("→ Staged tracked files");
+        println!("Staged tracked files");
     } else if !custom_files.is_empty() {
         let repo_root = get_repo_root()?;
         let mut args = vec!["add".to_string()];
         args.extend(custom_files.iter().cloned());
         let args_refs: Vec<&str> = args.iter().map(String::as_str).collect();
         crate::git::run_git_in_dir_silent(&args_refs, &repo_root)?;
-        println!("→ Staged {} file(s)", custom_files.len());
+        println!("Staged {} file(s)", custom_files.len());
     }
 
-    print!("→ Committing");
+    print!("Committing");
     if amend {
         print!(" (amend)");
     }
@@ -133,17 +143,17 @@ pub fn run_commit(
     commit_args.push(commit_msg.as_str());
 
     run_git_quiet(&commit_args)?;
-    println!("✓ Commit created");
+    println!("Commit created");
 
     if push {
-        print!("→ Pushing");
+        print!("Pushing");
         let branch = get_current_branch().ok();
         if let Some(b) = branch {
             print!(" to {}", b);
         }
         println!("...");
         run_git_quiet(&["push"])?;
-        println!("✓ Pushed successfully");
+        println!("Pushed successfully");
     }
 
     println!("Done.");

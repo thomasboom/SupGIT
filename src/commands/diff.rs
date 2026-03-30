@@ -42,16 +42,16 @@ struct FileDiffEntry {
     deletions: Option<usize>,
 }
 
-pub fn run_diff(path: Option<String>, staged: bool) -> Result<()> {
+pub fn run_diff(path: Option<String>, staged: bool, non_interactive: bool) -> Result<()> {
     if let Some(path) = path {
         show_diff_for_path(&path, staged, false)?;
         return Ok(());
     }
 
-    run_diff_selector(staged)
+    run_diff_selector(staged, non_interactive)
 }
 
-fn run_diff_selector(staged: bool) -> Result<()> {
+fn run_diff_selector(staged: bool, non_interactive: bool) -> Result<()> {
     let entries = build_diff_entries(staged)?;
     if entries.is_empty() {
         if staged {
@@ -59,6 +59,14 @@ fn run_diff_selector(staged: bool) -> Result<()> {
         } else {
             println!("No unstaged files to diff.");
         }
+        return Ok(());
+    }
+
+    if non_interactive {
+        for entry in &entries {
+            println!("{}", format_selector_item(entry));
+        }
+        println!("(non-interactive mode: pass a path to diff a specific file)");
         return Ok(());
     }
 

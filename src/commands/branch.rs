@@ -43,7 +43,7 @@ pub fn delete_branch(branch_name: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn delete_branch_interactive() -> Result<()> {
+pub fn delete_branch_interactive(non_interactive: bool) -> Result<()> {
     let branches = get_branches()?;
     let current = get_current_branch().unwrap_or_default();
 
@@ -55,6 +55,10 @@ pub fn delete_branch_interactive() -> Result<()> {
 
     if deletable_branches.is_empty() {
         bail!("no branches available to delete (cannot delete current branch)");
+    }
+
+    if non_interactive {
+        bail!("cannot delete branch in non-interactive mode");
     }
 
     let display_branches: Vec<String> = deletable_branches.to_vec();
@@ -110,9 +114,22 @@ pub fn delete_branch_interactive() -> Result<()> {
     Ok(())
 }
 
-pub fn run_branch_interactive() -> Result<()> {
+pub fn run_branch_interactive(non_interactive: bool) -> Result<()> {
     let branches = get_branches()?;
     let current = get_current_branch().unwrap_or_default();
+
+    if non_interactive {
+        if branches.is_empty() {
+            println!("No branches available.");
+        } else {
+            println!("Current branch: {}", current);
+            println!("Available branches:");
+            for branch in &branches {
+                println!("  {}", branch);
+            }
+        }
+        return Ok(());
+    }
 
     let mut display_branches: Vec<String> = branches
         .iter()
@@ -144,7 +161,7 @@ pub fn run_branch_interactive() -> Result<()> {
         run_git_silent(&["checkout", "-b", &normalized_name])?;
         println!("✓ Created and switched to branch '{}'", normalized_name);
     } else if selection == branches.len() + 1 {
-        delete_branch_interactive()?;
+        delete_branch_interactive(non_interactive)?;
     } else {
         let selected_branch = &branches[selection];
         if selected_branch == &current {

@@ -4,10 +4,16 @@ use dialoguer::{MultiSelect, Select};
 use crate::git::run_git_silent;
 use crate::status::{get_repo_root, get_staged_files};
 
-pub fn restore_stage(targets: &[String], all: bool) -> Result<()> {
+pub fn restore_stage(targets: &[String], all: bool, non_interactive: bool) -> Result<()> {
     let is_interactive = targets.is_empty() && !all;
 
     if is_interactive {
+        if non_interactive {
+            run_git_silent(&["restore", "--staged", "."])?;
+            println!("✓ All files unstaged (non-interactive mode)");
+            return Ok(());
+        }
+
         let selection = Select::new()
             .with_prompt("What would you like to unstage?")
             .items(&["All staged files", "Specific files"])

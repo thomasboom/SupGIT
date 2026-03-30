@@ -11,7 +11,7 @@ const ALIAS_MARKER_END: &str = "# <<< supgit alias <<<";
 const SG_ALIAS_MARKER_START: &str = "# >>> supgit sg alias >>>";
 const SG_ALIAS_MARKER_END: &str = "# <<< supgit sg alias <<<";
 
-pub fn run_alias(dry_run: bool, git: bool, sg: bool) -> Result<()> {
+pub fn run_alias(dry_run: bool, git: bool, sg: bool, non_interactive: bool) -> Result<()> {
     let shell_config = get_shell_config()?;
 
     if git && sg {
@@ -23,6 +23,10 @@ pub fn run_alias(dry_run: bool, git: bool, sg: bool) -> Result<()> {
     } else if sg {
         "sg".to_string()
     } else {
+        if non_interactive {
+            anyhow::bail!("alias selection requires --git or --sg flag in non-interactive mode");
+        }
+
         let selection = Select::new()
             .with_prompt("Which alias would you like to add?")
             .item("git -> supgit")
@@ -96,7 +100,7 @@ pub fn run_alias(dry_run: bool, git: bool, sg: bool) -> Result<()> {
     Ok(())
 }
 
-pub fn run_unalias(dry_run: bool, git: bool, sg: bool) -> Result<()> {
+pub fn run_unalias(dry_run: bool, git: bool, sg: bool, non_interactive: bool) -> Result<()> {
     let shell_config = get_shell_config()?;
 
     if git && sg {
@@ -108,6 +112,10 @@ pub fn run_unalias(dry_run: bool, git: bool, sg: bool) -> Result<()> {
     } else if sg {
         "sg".to_string()
     } else {
+        if non_interactive {
+            anyhow::bail!("alias selection requires --git or --sg flag in non-interactive mode");
+        }
+
         let selection = Select::new()
             .with_prompt("Which alias would you like to remove?")
             .item("git")

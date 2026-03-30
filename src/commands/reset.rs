@@ -13,10 +13,17 @@ pub fn run_reset(
     unstaged: bool,
     tracked: bool,
     untracked: bool,
+    non_interactive: bool,
 ) -> Result<()> {
     let is_interactive = !all && !staged && !unstaged && !tracked && !untracked;
 
     if is_interactive {
+        if non_interactive {
+            reset_all()?;
+            println!("(non-interactive mode)");
+            return Ok(());
+        }
+
         let selection = Select::new()
             .with_prompt("What would you like to reset?")
             .items(&[

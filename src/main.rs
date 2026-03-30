@@ -51,7 +51,7 @@ fn main() {
 fn run() -> Result<()> {
     check_and_auto_update();
 
-    let cli = match Cli::try_parse() {
+    let mut cli = match Cli::try_parse() {
         Ok(cli) => cli,
         Err(err) => {
             let err_string = err.to_string();
@@ -65,9 +65,9 @@ fn run() -> Result<()> {
                 if let Some(pos) = args.iter().position(|a| a == unrecognized) {
                     new_args.extend(args[pos + 1..].iter().cloned());
                 }
-                let cli = Cli::parse_from(&new_args);
-                if let Some(command) = cli.command {
-                    return execute_command(command);
+                let mut cli = Cli::parse_from(&new_args);
+                if let Some(command) = cli.command.take() {
+                    return execute_command(command, &cli);
                 }
             }
             err.exit();
@@ -79,15 +79,15 @@ fn run() -> Result<()> {
         return Ok(());
     }
 
-    let command = match cli.command {
+    let command = match cli.command.take() {
         Some(command) => command,
         None => bail!("'supgit' requires a subcommand; use --help to see the available list"),
     };
 
-    execute_command(command)
+    execute_command(command, &cli)
 }
 
-fn execute_command(command: SupgitCommand) -> Result<()> {
+fn execute_command(command: SupgitCommand, cli: &Cli) -> Result<()> {
     if !matches!(
         command,
         SupgitCommand::Init
@@ -108,8 +108,10 @@ fn execute_command(command: SupgitCommand) -> Result<()> {
             targets,
             all,
             tracked,
-        } => stage_targets(&targets, all, tracked)?,
-        SupgitCommand::Unstage { targets, all } => restore_stage(&targets, all)?,
+        } => stage_targets(&targets, all, tracked, cli.non_interactive)?,
+        SupgitCommand::Unstage { targets, all } => {
+            restore_stage(&targets, all, cli.non_interactive)?
+        }
         SupgitCommand::Status { short } => {
             if short {
                 run_git(&["status", "-sb"])?;
@@ -125,7 +127,7 @@ fn execute_command(command: SupgitCommand) -> Result<()> {
             }
         }
         SupgitCommand::Diff { path, staged } => {
-            run_diff(path, staged)?;
+            run_diff(path, staged, cli.non_interactive)?;
         }
         SupgitCommand::Reset {
             all,
@@ -133,14 +135,21 @@ fn execute_command(command: SupgitCommand) -> Result<()> {
             unstaged,
             tracked,
             untracked,
-        } => run_reset(all, staged, unstaged, tracked, untracked)?,
+        } => run_reset(
+            all,
+            staged,
+            unstaged,
+            tracked,
+            untracked,
+            cli.non_interactive,
+        )?,
         SupgitCommand::Branch { create, delete } => {
             if let Some(branch_name) = create {
                 create_branch(&branch_name)?;
             } else if let Some(branch_name) = delete {
                 delete_branch(&branch_name)?;
             } else {
-                run_branch_interactive()?;
+                run_branch_interactive(cli.non_interactive)?;
             }
         }
         SupgitCommand::Push { remote, branch } => {
@@ -161,7 +170,16 @@ fn execute_command(command: SupgitCommand) -> Result<()> {
             amend,
             no_verify,
         } => {
-            run_commit(message, all, staged, unstaged, push, amend, no_verify)?;
+            run_commit(
+                message,
+                all,
+                staged,
+                unstaged,
+                push,
+                amend,
+                no_verify,
+                cli.non_interactive,
+            )?;
         }
         SupgitCommand::Clone { url, directory } => {
             run_clone(&url, directory.as_deref())?;
@@ -170,10 +188,10 @@ fn execute_command(command: SupgitCommand) -> Result<()> {
             run_self_update(None)?;
         }
         SupgitCommand::Alias { dry_run, git, sg } => {
-            run_alias(dry_run, git, sg)?;
+            run_alias(dry_run, git, sg, cli.non_interactive)?;
         }
         SupgitCommand::Unalias { dry_run, git, sg } => {
-            run_unalias(dry_run, git, sg)?;
+            run_unalias(dry_run, git, sg, cli.non_interactive)?;
         }
     }
 
