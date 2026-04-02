@@ -161,4 +161,22 @@ pub enum SupgitCommand {
         #[arg(long)]
         list: bool,
     },
+    Tag {
+        #[arg(long, value_name = "NAME")]
+        create: Option<String>,
+        #[arg(long, value_name = "NAME")]
+        delete: Option<String>,
+        #[arg(long, value_name = "NAME")]
+        push: Option<String>,
+        #[arg(long)]
+        push_all: bool,
+        #[arg(long, value_name = "MSG")]
+        message: Option<String>,
+        #[arg(long)]
+        annotate: bool,
+        #[arg(long)]
+        force: bool,
+        #[arg(long)]
+        list: bool,
+    },
 }

@@ -16,7 +16,6 @@
 
 ## Collaboration
 
-- `tag` - Create/list/delete tags
 - `cherry-pick` - Apply specific commits
 - `revert` - Create revert commits
 

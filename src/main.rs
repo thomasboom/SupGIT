@@ -10,14 +10,14 @@ use commands::{
     add_remote, check_and_auto_update, create_branch, delete_branch, remove_remote, restore_stage,
     run_alias, run_branch_interactive, run_clone, run_commit, run_diff, run_pull, run_push,
     run_remote_interactive, run_reset, run_self_update, run_shelve_interactive, run_sync,
-    run_unalias, run_worktree_interactive, set_remote_url, stage_targets,
+    run_tag_interactive, run_unalias, run_worktree_interactive, set_remote_url, stage_targets,
 };
 use git::{check_in_repo, run_git, run_git_silent};
 use strsim::jaro_winkler;
 
 const COMMANDS: &[&str] = &[
     "init", "stage", "unstage", "status", "commit", "log", "diff", "reset", "branch", "remote",
-    "push", "pull", "sync", "clone", "update", "alias", "unalias", "shelve", "worktree",
+    "push", "pull", "sync", "clone", "update", "alias", "unalias", "shelve", "worktree", "tag",
 ];
 
 fn find_closest_command(input: &str) -> Option<&'static str> {
@@ -99,6 +99,7 @@ fn execute_command(command: SupgitCommand, cli: &Cli) -> Result<()> {
             | SupgitCommand::Remote { .. }
             | SupgitCommand::Shelve { .. }
             | SupgitCommand::Worktree { .. }
+            | SupgitCommand::Tag { .. }
     ) {
         check_in_repo()?;
     }
@@ -293,6 +294,48 @@ fn execute_command(command: SupgitCommand, cli: &Cli) -> Result<()> {
         SupgitCommand::Unalias { dry_run, git, sg } => {
             run_unalias(dry_run, git, sg, cli.non_interactive)?;
         }
+        SupgitCommand::Tag {
+            create,
+            delete,
+            push,
+            push_all,
+            message,
+            annotate,
+            force,
+            list,
+        } => {
+            if list {
+                let tags = crate::commands::get_tags()?;
+                if tags.is_empty() {
+                    println!("No tags found.");
+                } else {
+                    println!("Tags:");
+                    for tag in &tags {
+                        let annotation = if tag.is_annotated { " (annotated)" } else { "" };
+                        if let Some(msg) = &tag.message {
+                            println!("  {}{}: {}", tag.name, annotation, msg);
+                        } else {
+                            println!("  {}{}", tag.name, annotation);
+                        }
+                    }
+                }
+            } else if let Some(name) = create {
+                let msg = if annotate {
+                    Some(message.as_deref().unwrap_or(""))
+                } else {
+                    message.as_deref()
+                };
+                crate::commands::create_tag(&name, msg, force)?;
+            } else if let Some(name) = delete {
+                crate::commands::delete_tag(&name)?;
+            } else if let Some(name) = push {
+                crate::commands::push_tag(&name, None)?;
+            } else if push_all {
+                crate::commands::push_all_tags(None)?;
+            } else {
+                run_tag_interactive(cli.non_interactive)?;
+            }
+        }
     }
 
     Ok(())
@@ -333,5 +376,8 @@ fn print_explanations() {
     );
     println!(
         "  worktree – manage worktrees (interactive); use --add <path> [--branch <name>] [--new-branch], --remove <path> [--force], --prune, --list"
+    );
+    println!(
+        "  tag      – manage tags (interactive); use --create <name> [--message <msg>] [--annotate], --delete <name>, --push <name>, --push-all, --list"
     );
 }

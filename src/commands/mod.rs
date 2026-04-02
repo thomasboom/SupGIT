@@ -8,6 +8,7 @@ mod reset;
 mod shelve;
 mod stage;
 mod sync;
+mod tag;
 mod unstage;
 mod update;
 mod worktree;
@@ -24,6 +25,7 @@ pub use shelve::{
 };
 pub use stage::stage_targets;
 pub use sync::{run_pull, run_push, run_sync};
+pub use tag::{create_tag, delete_tag, get_tags, push_all_tags, push_tag, run_tag_interactive};
 pub use unstage::restore_stage;
 pub use update::{check_and_auto_update, run_self_update};
 pub use worktree::{
