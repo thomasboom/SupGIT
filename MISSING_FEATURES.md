@@ -22,7 +22,6 @@
 
 ## Advanced
 
-- `worktree` - Manage worktrees
 - `submodule` - Manage submodules
 - `bisect` - Binary search for commits
 
