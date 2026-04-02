@@ -10,14 +10,14 @@ use commands::{
     add_remote, check_and_auto_update, create_branch, delete_branch, remove_remote, restore_stage,
     run_alias, run_branch_interactive, run_clone, run_commit, run_diff, run_pull, run_push,
     run_remote_interactive, run_reset, run_self_update, run_shelve_interactive, run_sync,
-    run_unalias, set_remote_url, stage_targets,
+    run_unalias, run_worktree_interactive, set_remote_url, stage_targets,
 };
 use git::{check_in_repo, run_git, run_git_silent};
 use strsim::jaro_winkler;
 
 const COMMANDS: &[&str] = &[
     "init", "stage", "unstage", "status", "commit", "log", "diff", "reset", "branch", "remote",
-    "push", "pull", "sync", "clone", "update", "alias", "unalias", "shelve",
+    "push", "pull", "sync", "clone", "update", "alias", "unalias", "shelve", "worktree",
 ];
 
 fn find_closest_command(input: &str) -> Option<&'static str> {
@@ -98,6 +98,7 @@ fn execute_command(command: SupgitCommand, cli: &Cli) -> Result<()> {
             | SupgitCommand::Unalias { .. }
             | SupgitCommand::Remote { .. }
             | SupgitCommand::Shelve { .. }
+            | SupgitCommand::Worktree { .. }
     ) {
         check_in_repo()?;
     }
@@ -208,6 +209,49 @@ fn execute_command(command: SupgitCommand, cli: &Cli) -> Result<()> {
                 run_shelve_interactive(cli.non_interactive)?;
             }
         }
+        SupgitCommand::Worktree {
+            add,
+            remove,
+            branch,
+            new_branch,
+            force,
+            prune,
+            list,
+        } => {
+            if list {
+                let worktrees = crate::commands::get_worktrees()?;
+                if worktrees.is_empty() {
+                    println!("No worktrees found.");
+                } else {
+                    println!("Worktrees:");
+                    for wt in &worktrees {
+                        let info = wt.branch.as_ref().or(wt.head.as_ref());
+                        if let Some(info) = info {
+                            println!(
+                                "  {} ({}: {})",
+                                wt.path,
+                                if wt.branch.is_some() {
+                                    "branch"
+                                } else {
+                                    "detached"
+                                },
+                                info
+                            );
+                        } else {
+                            println!("  {}", wt.path);
+                        }
+                    }
+                }
+            } else if let Some(path) = add {
+                crate::commands::create_worktree(&path, branch.as_deref(), new_branch)?;
+            } else if let Some(path) = remove {
+                crate::commands::remove_worktree(&path, force)?;
+            } else if prune {
+                crate::commands::prune_worktrees()?;
+            } else {
+                run_worktree_interactive(cli.non_interactive)?;
+            }
+        }
         SupgitCommand::Push { remote, branch } => {
             run_push(remote, branch)?;
         }
@@ -286,5 +330,8 @@ fn print_explanations() {
     println!("  update  – update supgit to the latest version via cargo.");
     println!(
         "  shelve  – stash changes (interactive); use --save <msg>, --apply <n>, --unshelve <n>, --drop <n>, --clear, --list"
+    );
+    println!(
+        "  worktree – manage worktrees (interactive); use --add <path> [--branch <name>] [--new-branch], --remove <path> [--force], --prune, --list"
     );
 }

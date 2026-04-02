@@ -145,4 +145,20 @@ pub enum SupgitCommand {
         #[arg(long)]
         list: bool,
     },
+    Worktree {
+        #[arg(long, value_name = "PATH")]
+        add: Option<String>,
+        #[arg(long, value_name = "PATH")]
+        remove: Option<String>,
+        #[arg(long, value_name = "BRANCH")]
+        branch: Option<String>,
+        #[arg(long)]
+        new_branch: bool,
+        #[arg(long)]
+        force: bool,
+        #[arg(long)]
+        prune: bool,
+        #[arg(long)]
+        list: bool,
+    },
 }
