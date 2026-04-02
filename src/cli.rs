@@ -123,4 +123,12 @@ pub enum SupgitCommand {
         #[arg(long)]
         sg: bool,
     },
+    Remote {
+        #[arg(short, long, value_name = "NAME", num_args = 2)]
+        add: Option<Vec<String>>,
+        #[arg(short, long, value_name = "NAME")]
+        remove: Option<String>,
+        #[arg(long, value_name = "NAME", num_args = 2)]
+        set_url: Option<Vec<String>>,
+    },
 }

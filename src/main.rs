@@ -7,16 +7,17 @@ use anyhow::{Result, bail};
 use clap::Parser;
 use cli::{Cli, SupgitCommand};
 use commands::{
-    check_and_auto_update, create_branch, delete_branch, restore_stage, run_alias,
-    run_branch_interactive, run_clone, run_commit, run_diff, run_pull, run_push, run_reset,
-    run_self_update, run_sync, run_unalias, stage_targets,
+    add_remote, check_and_auto_update, create_branch, delete_branch, remove_remote, restore_stage,
+    run_alias, run_branch_interactive, run_clone, run_commit, run_diff, run_pull, run_push,
+    run_remote_interactive, run_reset, run_self_update, run_sync, run_unalias, set_remote_url,
+    stage_targets,
 };
 use git::{check_in_repo, run_git, run_git_silent};
 use strsim::jaro_winkler;
 
 const COMMANDS: &[&str] = &[
-    "init", "stage", "unstage", "status", "commit", "log", "diff", "reset", "branch", "push",
-    "pull", "sync", "clone", "update", "alias", "unalias",
+    "init", "stage", "unstage", "status", "commit", "log", "diff", "reset", "branch", "remote",
+    "push", "pull", "sync", "clone", "update", "alias", "unalias",
 ];
 
 fn find_closest_command(input: &str) -> Option<&'static str> {
@@ -95,6 +96,7 @@ fn execute_command(command: SupgitCommand, cli: &Cli) -> Result<()> {
             | SupgitCommand::Update
             | SupgitCommand::Alias { .. }
             | SupgitCommand::Unalias { .. }
+            | SupgitCommand::Remote { .. }
     ) {
         check_in_repo()?;
     }
@@ -150,6 +152,27 @@ fn execute_command(command: SupgitCommand, cli: &Cli) -> Result<()> {
                 delete_branch(&branch_name)?;
             } else {
                 run_branch_interactive(cli.non_interactive)?;
+            }
+        }
+        SupgitCommand::Remote {
+            add,
+            remove,
+            set_url,
+        } => {
+            if let Some(v) = add {
+                if v.len() != 2 {
+                    bail!("--add requires exactly two arguments: <name> <url>");
+                }
+                add_remote(&v[0], &v[1])?;
+            } else if let Some(name) = remove {
+                remove_remote(&name)?;
+            } else if let Some(v) = set_url {
+                if v.len() != 2 {
+                    bail!("--set-url requires exactly two arguments: <name> <url>");
+                }
+                set_remote_url(&v[0], &v[1])?;
+            } else {
+                run_remote_interactive(cli.non_interactive)?;
             }
         }
         SupgitCommand::Push { remote, branch } => {
@@ -209,6 +232,9 @@ fn print_explanations() {
     println!("  diff    – compare working changes (`--staged` shows what will be committed).");
     println!(
         "  branch  – list and checkout branches (interactive); use -c <name> to create, -d <name> to delete a branch."
+    );
+    println!(
+        "  remote  – view, add, remove, or change remote URLs (interactive); use --add <name> <url>, --remove <name>, --set-url <name> <url>"
     );
     println!(
         "  reset   – discard changes (interactive, or use --all/--staged/--unstaged/--tracked/--untracked)."
