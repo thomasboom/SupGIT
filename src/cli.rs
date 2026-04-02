@@ -131,4 +131,18 @@ pub enum SupgitCommand {
         #[arg(long, value_name = "NAME", num_args = 2)]
         set_url: Option<Vec<String>>,
     },
+    Shelve {
+        #[arg(long, value_name = "MSG")]
+        save: Option<String>,
+        #[arg(long, value_name = "INDEX")]
+        apply: Option<usize>,
+        #[arg(long, value_name = "INDEX")]
+        unshelve: Option<usize>,
+        #[arg(long, value_name = "INDEX")]
+        drop: Option<usize>,
+        #[arg(long)]
+        clear: bool,
+        #[arg(long)]
+        list: bool,
+    },
 }

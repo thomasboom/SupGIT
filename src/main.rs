@@ -9,15 +9,15 @@ use cli::{Cli, SupgitCommand};
 use commands::{
     add_remote, check_and_auto_update, create_branch, delete_branch, remove_remote, restore_stage,
     run_alias, run_branch_interactive, run_clone, run_commit, run_diff, run_pull, run_push,
-    run_remote_interactive, run_reset, run_self_update, run_sync, run_unalias, set_remote_url,
-    stage_targets,
+    run_remote_interactive, run_reset, run_self_update, run_shelve_interactive, run_sync,
+    run_unalias, set_remote_url, stage_targets,
 };
 use git::{check_in_repo, run_git, run_git_silent};
 use strsim::jaro_winkler;
 
 const COMMANDS: &[&str] = &[
     "init", "stage", "unstage", "status", "commit", "log", "diff", "reset", "branch", "remote",
-    "push", "pull", "sync", "clone", "update", "alias", "unalias",
+    "push", "pull", "sync", "clone", "update", "alias", "unalias", "shelve",
 ];
 
 fn find_closest_command(input: &str) -> Option<&'static str> {
@@ -97,6 +97,7 @@ fn execute_command(command: SupgitCommand, cli: &Cli) -> Result<()> {
             | SupgitCommand::Alias { .. }
             | SupgitCommand::Unalias { .. }
             | SupgitCommand::Remote { .. }
+            | SupgitCommand::Shelve { .. }
     ) {
         check_in_repo()?;
     }
@@ -175,6 +176,38 @@ fn execute_command(command: SupgitCommand, cli: &Cli) -> Result<()> {
                 run_remote_interactive(cli.non_interactive)?;
             }
         }
+        SupgitCommand::Shelve {
+            save,
+            apply,
+            unshelve,
+            drop,
+            clear,
+            list,
+        } => {
+            if list {
+                let stashes = crate::commands::get_stashes()?;
+                if stashes.is_empty() {
+                    println!("No stashes found.");
+                } else {
+                    println!("Stashed changes:");
+                    for stash in &stashes {
+                        println!("  stash@{{{}}}: {}", stash.index, stash.message);
+                    }
+                }
+            } else if let Some(msg) = save {
+                crate::commands::create_stash(Some(&msg))?;
+            } else if let Some(index) = apply {
+                crate::commands::apply_stash(index, false)?;
+            } else if let Some(index) = unshelve {
+                crate::commands::unshelve_stash(index)?;
+            } else if let Some(index) = drop {
+                crate::commands::apply_stash(index, true)?;
+            } else if clear {
+                crate::commands::clear_stash()?;
+            } else {
+                run_shelve_interactive(cli.non_interactive)?;
+            }
+        }
         SupgitCommand::Push { remote, branch } => {
             run_push(remote, branch)?;
         }
@@ -251,4 +284,7 @@ fn print_explanations() {
     println!("  alias   – add alias (--git or --sg, or shows selector).");
     println!("  unalias – remove alias (--git or --sg, or shows selector).");
     println!("  update  – update supgit to the latest version via cargo.");
+    println!(
+        "  shelve  – stash changes (interactive); use --save <msg>, --apply <n>, --unshelve <n>, --drop <n>, --clear, --list"
+    );
 }

@@ -5,6 +5,7 @@ mod commit;
 mod diff;
 mod remote;
 mod reset;
+mod shelve;
 mod stage;
 mod sync;
 mod unstage;
@@ -17,6 +18,9 @@ pub use commit::run_commit;
 pub use diff::run_diff;
 pub use remote::{add_remote, remove_remote, run_remote_interactive, set_remote_url};
 pub use reset::run_reset;
+pub use shelve::{
+    apply_stash, clear_stash, create_stash, get_stashes, run_shelve_interactive, unshelve_stash,
+};
 pub use stage::stage_targets;
 pub use sync::{run_pull, run_push, run_sync};
 pub use unstage::restore_stage;
