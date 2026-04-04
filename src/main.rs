@@ -3,7 +3,7 @@ mod commands;
 mod git;
 mod status;
 
-use anyhow::{Result, bail};
+use anyhow::{Context, Result, bail};
 use clap::Parser;
 use cli::{Cli, SupgitCommand};
 use commands::{
@@ -12,16 +12,105 @@ use commands::{
     run_remote_interactive, run_reset, run_self_update, run_shelve_interactive, run_sync,
     run_tag_interactive, run_unalias, run_worktree_interactive, set_remote_url, stage_targets,
 };
+use dialoguer::Select;
 use git::{check_in_repo, run_git, run_git_silent};
 use strsim::jaro_winkler;
 
-const COMMANDS: &[&str] = &[
-    "init", "stage", "unstage", "status", "commit", "log", "diff", "reset", "branch", "remote",
-    "push", "pull", "sync", "clone", "update", "alias", "unalias", "shelve", "worktree", "tag",
+const COMMANDS: &[(&str, &str)] = &[
+    ("init", "Initialize a new Git repository"),
+    ("stage", "Stage files for commit"),
+    ("unstage", "Unstage files from staging area"),
+    ("status", "Show working tree status"),
+    ("commit", "Commit staged changes"),
+    ("log", "View commit history"),
+    ("diff", "Show changes between commits"),
+    ("reset", "Reset working tree state"),
+    ("branch", "List, create, or delete branches"),
+    ("remote", "Manage remote repositories"),
+    ("push", "Push commits to remote"),
+    ("pull", "Pull commits from remote"),
+    ("sync", "Sync with remote (fetch, pull, push)"),
+    ("clone", "Clone a repository"),
+    ("update", "Update supgit to latest version"),
+    ("alias", "Add shell alias"),
+    ("unalias", "Remove shell alias"),
+    ("shelve", "Shelve changes temporarily"),
+    ("worktree", "Manage worktrees"),
+    ("tag", "List, create, or delete tags"),
 ];
 
+fn get_command_names() -> Vec<&'static str> {
+    COMMANDS.iter().map(|(name, _)| *name).collect()
+}
+
+fn parse_command_from_name(name: &str) -> Option<SupgitCommand> {
+    match name {
+        "init" => Some(SupgitCommand::Init),
+        "stage" => Some(SupgitCommand::Stage {
+            targets: vec![],
+            all: false,
+            tracked: false,
+        }),
+        "unstage" => Some(SupgitCommand::Unstage {
+            targets: vec![],
+            all: false,
+        }),
+        "status" => Some(SupgitCommand::Status { short: false }),
+        "commit" => Some(SupgitCommand::Commit {
+            message: None,
+            all: false,
+            staged: false,
+            unstaged: false,
+            push: false,
+            amend: false,
+            no_verify: false,
+        }),
+        "log" => Some(SupgitCommand::Log { short: false }),
+        "diff" => Some(SupgitCommand::Diff {
+            path: None,
+            staged: false,
+        }),
+        "reset" => Some(SupgitCommand::Reset {
+            all: false,
+            staged: false,
+            unstaged: false,
+            tracked: false,
+            untracked: false,
+        }),
+        "branch" => Some(SupgitCommand::Branch {
+            create: None,
+            delete: None,
+        }),
+        "push" => Some(SupgitCommand::Push {
+            remote: None,
+            branch: None,
+        }),
+        "pull" => Some(SupgitCommand::Pull {
+            remote: None,
+            branch: None,
+        }),
+        "sync" => Some(SupgitCommand::Sync {
+            remote: None,
+            branch: None,
+        }),
+        "clone" => None,
+        "update" => Some(SupgitCommand::Update),
+        "alias" => Some(SupgitCommand::Alias {
+            dry_run: false,
+            git: false,
+            sg: false,
+        }),
+        "unalias" => Some(SupgitCommand::Unalias {
+            dry_run: false,
+            git: false,
+            sg: false,
+        }),
+        _ => None,
+    }
+}
+
 fn find_closest_command(input: &str) -> Option<&'static str> {
-    COMMANDS
+    get_command_names()
         .iter()
         .map(|&cmd| (cmd, jaro_winkler(input, cmd)))
         .filter(|(_, score)| *score > 0.7)
@@ -38,6 +127,28 @@ fn extract_unrecognized_subcommand(err_str: &str) -> Option<&str> {
     } else {
         None
     }
+}
+
+fn select_command_interactive() -> Result<SupgitCommand> {
+    let items: Vec<String> = COMMANDS
+        .iter()
+        .map(|(name, desc)| format!("{} – {}", name, desc))
+        .collect();
+
+    let selection = Select::new()
+        .with_prompt("Select a command")
+        .items(&items)
+        .default(0)
+        .interact()
+        .context("failed to display command selector")?;
+
+    let (cmd_name, _) = COMMANDS[selection];
+
+    if cmd_name == "clone" {
+        bail!("'clone' requires a URL argument; use 'supgit clone <url>'");
+    }
+
+    parse_command_from_name(cmd_name).context("failed to parse selected command")
 }
 
 fn main() {
@@ -82,7 +193,12 @@ fn run() -> Result<()> {
 
     let command = match cli.command.take() {
         Some(command) => command,
-        None => bail!("'supgit' requires a subcommand; use --help to see the available list"),
+        None => {
+            if cli.non_interactive {
+                bail!("'supgit' requires a subcommand; use --help to see the available list");
+            }
+            select_command_interactive()?
+        }
     };
 
     execute_command(command, &cli)
