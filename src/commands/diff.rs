@@ -2,8 +2,8 @@ use std::fs;
 use std::path::Path;
 use std::process::Command as StdCommand;
 
-use anyhow::{Context, Result, bail};
-use dialoguer::Select;
+use anyhow::{bail, Context, Result};
+use dialoguer::FuzzySelect;
 
 use crate::status::get_porcelain_lines;
 
@@ -79,7 +79,7 @@ fn run_diff_selector(staged: bool, non_interactive: bool) -> Result<()> {
         "Select an unstaged file to view its diff"
     };
 
-    let selection = Select::new()
+    let selection = FuzzySelect::new()
         .with_prompt(prompt)
         .items(&items)
         .default(0)

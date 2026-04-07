@@ -12,7 +12,7 @@ use commands::{
     run_remote_interactive, run_reset, run_self_update, run_shelve_interactive, run_sync,
     run_tag_interactive, run_unalias, run_worktree_interactive, set_remote_url, stage_targets,
 };
-use dialoguer::Select;
+use dialoguer::FuzzySelect;
 use git::{check_in_repo, run_git, run_git_silent};
 use strsim::jaro_winkler;
 
@@ -135,7 +135,7 @@ fn select_command_interactive() -> Result<SupgitCommand> {
         .map(|(name, desc)| format!("{} – {}", name, desc))
         .collect();
 
-    let selection = Select::new()
+    let selection = FuzzySelect::new()
         .with_prompt("Select a command")
         .items(&items)
         .default(0)
@@ -167,19 +167,19 @@ fn run() -> Result<()> {
         Ok(cli) => cli,
         Err(err) => {
             let err_string = err.to_string();
-            if let Some(unrecognized) = extract_unrecognized_subcommand(&err_string)
-                && let Some(closest) = find_closest_command(unrecognized)
-            {
-                eprintln!("error: unrecognized subcommand '{}'", unrecognized);
-                eprintln!("tip: running '{}' instead...", closest);
-                let args = std::env::args().collect::<Vec<_>>();
-                let mut new_args = vec![args[0].clone(), closest.to_string()];
-                if let Some(pos) = args.iter().position(|a| a == unrecognized) {
-                    new_args.extend(args[pos + 1..].iter().cloned());
-                }
-                let mut cli = Cli::parse_from(&new_args);
-                if let Some(command) = cli.command.take() {
-                    return execute_command(command, &cli);
+            if let Some(unrecognized) = extract_unrecognized_subcommand(&err_string) {
+                if let Some(closest) = find_closest_command(unrecognized) {
+                    eprintln!("error: unrecognized subcommand '{}'", unrecognized);
+                    eprintln!("tip: running '{}' instead...", closest);
+                    let args = std::env::args().collect::<Vec<_>>();
+                    let mut new_args = vec![args[0].clone(), closest.to_string()];
+                    if let Some(pos) = args.iter().position(|a| a == unrecognized) {
+                        new_args.extend(args[pos + 1..].iter().cloned());
+                    }
+                    let mut cli = Cli::parse_from(&new_args);
+                    if let Some(command) = cli.command.take() {
+                        return execute_command(command, &cli);
+                    }
                 }
             }
             err.exit();

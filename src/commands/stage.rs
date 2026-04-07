@@ -1,8 +1,8 @@
 use anyhow::Result;
-use dialoguer::{MultiSelect, Select};
+use dialoguer::{FuzzySelect, MultiSelect};
 
 use crate::git::run_git_silent;
-use crate::status::{PorcelainStatus, get_repo_root};
+use crate::status::{get_repo_root, PorcelainStatus};
 
 pub fn stage_targets(
     targets: &[String],
@@ -19,7 +19,7 @@ pub fn stage_targets(
             return Ok(());
         }
 
-        let selection = Select::new()
+        let selection = FuzzySelect::new()
             .with_prompt("What would you like to stage?")
             .items(&["All files", "Tracked files only", "Specific files"])
             .default(0)

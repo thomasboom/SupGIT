@@ -1,7 +1,7 @@
 use std::process::Command as StdCommand;
 
-use anyhow::{Context, Result, bail};
-use dialoguer::{Confirm, Input, Select};
+use anyhow::{bail, Context, Result};
+use dialoguer::{Confirm, FuzzySelect, Input};
 
 use crate::git::run_git_silent;
 
@@ -145,7 +145,7 @@ pub fn run_remote_interactive(non_interactive: bool) -> Result<()> {
     options.push("Remove a remote...".to_string());
     options.push("Change remote URL...".to_string());
 
-    let selection = Select::new()
+    let selection = FuzzySelect::new()
         .with_prompt("Select a remote")
         .items(&options)
         .default(0)
@@ -178,7 +178,7 @@ pub fn run_remote_interactive(non_interactive: bool) -> Result<()> {
         }
 
         let remote_names: Vec<String> = remotes.iter().map(|r| r.name.clone()).collect();
-        let selection = Select::new()
+        let selection = FuzzySelect::new()
             .with_prompt("Select a remote to remove")
             .items(&remote_names)
             .default(0)
@@ -201,7 +201,7 @@ pub fn run_remote_interactive(non_interactive: bool) -> Result<()> {
         }
 
         let remote_names: Vec<String> = remotes.iter().map(|r| r.name.clone()).collect();
-        let selection = Select::new()
+        let selection = FuzzySelect::new()
             .with_prompt("Select a remote to change URL")
             .items(&remote_names)
             .default(0)

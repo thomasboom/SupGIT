@@ -1,7 +1,7 @@
 use std::process::Command as StdCommand;
 
-use anyhow::{Context, Result, bail};
-use dialoguer::{Confirm, Input, Select};
+use anyhow::{bail, Context, Result};
+use dialoguer::{Confirm, FuzzySelect, Input};
 
 use crate::git::run_git_silent;
 use crate::status::{get_branches, get_current_branch};
@@ -63,7 +63,7 @@ pub fn delete_branch_interactive(non_interactive: bool) -> Result<()> {
 
     let display_branches: Vec<String> = deletable_branches.to_vec();
 
-    let selection = Select::new()
+    let selection = FuzzySelect::new()
         .with_prompt("Select a branch to delete")
         .items(&display_branches)
         .default(0)
@@ -144,7 +144,7 @@ pub fn run_branch_interactive(non_interactive: bool) -> Result<()> {
     display_branches.push("Create new branch...".to_string());
     display_branches.push("Delete a branch...".to_string());
 
-    let selection = Select::new()
+    let selection = FuzzySelect::new()
         .with_prompt("Select a branch to checkout")
         .items(&display_branches)
         .default(0)

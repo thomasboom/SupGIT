@@ -1,7 +1,7 @@
 use std::process::Command as StdCommand;
 
-use anyhow::{Context, Result, bail};
-use dialoguer::{Confirm, Input, Select};
+use anyhow::{bail, Context, Result};
+use dialoguer::{Confirm, FuzzySelect, Input};
 
 use crate::git::run_git_silent;
 
@@ -50,10 +50,10 @@ pub fn get_worktrees() -> Result<Vec<WorktreeInfo>> {
                         .to_string(),
                 );
             }
-        } else if line.starts_with("HEAD ")
-            && let Some(ref mut wt) = current_worktree
-        {
-            wt.head = Some(line.strip_prefix("HEAD ").unwrap_or("").trim().to_string());
+        } else if line.starts_with("HEAD ") {
+            if let Some(ref mut wt) = current_worktree {
+                wt.head = Some(line.strip_prefix("HEAD ").unwrap_or("").trim().to_string());
+            }
         }
     }
 
@@ -145,7 +145,7 @@ pub fn run_worktree_interactive(non_interactive: bool) -> Result<()> {
     options.push("Create a new worktree".to_string());
     options.push("Prune stale worktrees".to_string());
 
-    let selection = Select::new()
+    let selection = FuzzySelect::new()
         .with_prompt("Select a worktree action")
         .items(&options)
         .default(0)
@@ -172,7 +172,7 @@ pub fn run_worktree_interactive(non_interactive: bool) -> Result<()> {
             println!("No worktrees to remove.");
             return Ok(());
         }
-        let selection = Select::new()
+        let selection = FuzzySelect::new()
             .with_prompt("Select a worktree to remove")
             .items(
                 &worktrees
@@ -226,7 +226,7 @@ pub fn run_worktree_interactive(non_interactive: bool) -> Result<()> {
                     bail!("No branches available");
                 }
 
-                let branch_selection = Select::new()
+                let branch_selection = FuzzySelect::new()
                     .with_prompt("Select a branch")
                     .items(&branches)
                     .default(0)

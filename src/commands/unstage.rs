@@ -1,5 +1,5 @@
 use anyhow::Result;
-use dialoguer::{MultiSelect, Select};
+use dialoguer::{FuzzySelect, MultiSelect};
 
 use crate::git::run_git_silent;
 use crate::status::{get_repo_root, get_staged_files};
@@ -14,7 +14,7 @@ pub fn restore_stage(targets: &[String], all: bool, non_interactive: bool) -> Re
             return Ok(());
         }
 
-        let selection = Select::new()
+        let selection = FuzzySelect::new()
             .with_prompt("What would you like to unstage?")
             .items(&["All staged files", "Specific files"])
             .default(0)

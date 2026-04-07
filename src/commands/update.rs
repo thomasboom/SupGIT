@@ -1,4 +1,4 @@
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 use log::debug;
 use std::env;
 use std::io::IsTerminal;
@@ -44,10 +44,10 @@ pub fn check_and_auto_update() {
     }
 
     let handle = std::thread::spawn(|| {
-        if let Some(elapsed) = get_time_since_last_check()
-            && elapsed.as_secs() < UPDATE_CHECK_INTERVAL_SECS
-        {
-            return;
+        if let Some(elapsed) = get_time_since_last_check() {
+            if elapsed.as_secs() < UPDATE_CHECK_INTERVAL_SECS {
+                return;
+            }
         }
 
         let update_check_result = (|| -> Result<()> {

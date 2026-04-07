@@ -1,7 +1,7 @@
 use std::process::Command as StdCommand;
 
-use anyhow::{Context, Result, bail};
-use dialoguer::{Confirm, Input, Select};
+use anyhow::{bail, Context, Result};
+use dialoguer::{Confirm, FuzzySelect, Input};
 
 use crate::git::run_git_silent;
 
@@ -40,11 +40,11 @@ pub fn get_stashes() -> Result<Vec<StashInfo>> {
 
 pub fn create_stash(message: Option<&str>) -> Result<()> {
     let mut args = vec!["stash", "push"];
-    if let Some(msg) = message
-        && !msg.trim().is_empty()
-    {
-        args.push("-m");
-        args.push(msg);
+    if let Some(msg) = message {
+        if !msg.trim().is_empty() {
+            args.push("-m");
+            args.push(msg);
+        }
     }
 
     run_git_silent(&args)?;
@@ -105,7 +105,7 @@ pub fn run_shelve_interactive(non_interactive: bool) -> Result<()> {
     options.push("Save current changes (stash push)".to_string());
     options.push("Clear all stashes".to_string());
 
-    let selection = Select::new()
+    let selection = FuzzySelect::new()
         .with_prompt("Select a stash action")
         .items(&options)
         .default(0)
@@ -120,7 +120,7 @@ pub fn run_shelve_interactive(non_interactive: bool) -> Result<()> {
     if has_stashes && selection < stashes.len() {
         let stash = &stashes[selection];
         let sub_options = vec!["Apply and keep", "Apply and remove (unshelve)", "Drop"];
-        let sub_selection = Select::new()
+        let sub_selection = FuzzySelect::new()
             .with_prompt(format!("What to do with stash@{{{}}}", stash.index))
             .items(&sub_options)
             .default(0)
@@ -146,7 +146,7 @@ pub fn run_shelve_interactive(non_interactive: bool) -> Result<()> {
         if stashes.is_empty() {
             bail!("no stashes to apply");
         }
-        let selection = Select::new()
+        let selection = FuzzySelect::new()
             .with_prompt("Select a stash to apply and keep")
             .items(
                 &stashes
@@ -161,7 +161,7 @@ pub fn run_shelve_interactive(non_interactive: bool) -> Result<()> {
         if stashes.is_empty() {
             bail!("no stashes to unshelve");
         }
-        let selection = Select::new()
+        let selection = FuzzySelect::new()
             .with_prompt("Select a stash to apply and remove")
             .items(
                 &stashes

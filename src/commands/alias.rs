@@ -4,7 +4,7 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
-use dialoguer::Select;
+use dialoguer::FuzzySelect;
 
 const ALIAS_MARKER_START: &str = "# >>> supgit alias >>>";
 const ALIAS_MARKER_END: &str = "# <<< supgit alias <<<";
@@ -27,7 +27,7 @@ pub fn run_alias(dry_run: bool, git: bool, sg: bool, non_interactive: bool) -> R
             anyhow::bail!("alias selection requires --git or --sg flag in non-interactive mode");
         }
 
-        let selection = Select::new()
+        let selection = FuzzySelect::new()
             .with_prompt("Which alias would you like to add?")
             .item("git -> supgit")
             .item("sg -> supgit")
@@ -116,7 +116,7 @@ pub fn run_unalias(dry_run: bool, git: bool, sg: bool, non_interactive: bool) ->
             anyhow::bail!("alias selection requires --git or --sg flag in non-interactive mode");
         }
 
-        let selection = Select::new()
+        let selection = FuzzySelect::new()
             .with_prompt("Which alias would you like to remove?")
             .item("git")
             .item("sg")

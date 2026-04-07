@@ -1,7 +1,7 @@
 use std::process::Command as StdCommand;
 
 use anyhow::{Context, Result};
-use dialoguer::{Confirm, Input, Select};
+use dialoguer::{Confirm, FuzzySelect, Input};
 
 use crate::git::run_git_silent;
 
@@ -150,7 +150,7 @@ pub fn run_tag_interactive(non_interactive: bool) -> Result<()> {
     }
     options.push("Create a new tag".to_string());
 
-    let selection = Select::new()
+    let selection = FuzzySelect::new()
         .with_prompt("Select a tag action")
         .items(&options)
         .default(0)
@@ -176,7 +176,7 @@ pub fn run_tag_interactive(non_interactive: bool) -> Result<()> {
             println!("No tags to delete.");
             return Ok(());
         }
-        let selection = Select::new()
+        let selection = FuzzySelect::new()
             .with_prompt("Select a tag to delete")
             .items(&tags.iter().map(|t| t.name.clone()).collect::<Vec<_>>())
             .default(0)
@@ -187,7 +187,7 @@ pub fn run_tag_interactive(non_interactive: bool) -> Result<()> {
             println!("No tags to push.");
             return Ok(());
         }
-        let selection = Select::new()
+        let selection = FuzzySelect::new()
             .with_prompt("Select a tag to push")
             .items(&tags.iter().map(|t| t.name.clone()).collect::<Vec<_>>())
             .default(0)

@@ -1,10 +1,10 @@
 use std::process::Command as StdCommand;
 
-use anyhow::{Result, bail};
-use dialoguer::{Confirm, Input, Select};
+use anyhow::{bail, Result};
+use dialoguer::{Confirm, FuzzySelect, Input};
 
 use crate::git::{run_git_quiet, run_git_silent};
-use crate::status::{PorcelainStatus, get_current_branch, get_repo_root};
+use crate::status::{get_current_branch, get_repo_root, PorcelainStatus};
 
 pub fn run_commit(
     message: Option<String>,
@@ -23,7 +23,7 @@ pub fn run_commit(
             bail!("commit requires --message in non-interactive mode");
         }
 
-        let scope = Select::new()
+        let scope = FuzzySelect::new()
             .with_prompt("What would you like to commit?")
             .items(&[
                 "Staged changes",
