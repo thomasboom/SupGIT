@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="color-scheme" content="light dark" />
+        <meta
+            name="description"
+            content="SupGIT (Simple Git) is a lightning-fast Rust wrapper around the Git CLI that exposes streamlined workflows for everyday Git tasks."
+        />
+        <title>SupGIT — Simple Git, faster</title>
+        <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+        <link rel="stylesheet" href="./styles.css" />
+    </head>
+    <body>
+        <a class="skip-link" href="#content">Skip to content</a>
+
+        <header class="site-header">
+            <div class="wrap">
+                <div class="hero" id="content">
+                    <h1>SupGIT. Git, simplified.</h1>
+                    <p>
+                        SupGIT is a blazing fast wrapper around the Git CLI, built
+                        in Rust. It aims to simplify common Git workflows while
+                        maintaining the full power of Git when you need it.
+                    </p>
+
+                    <div class="install-box">
+                        <pre
+                            class="code"
+                        ><code>curl -fsSL https://supgit.vercel.app/install.sh | sh</code></pre>
+                        <button
+                            class="copy-btn"
+                            aria-label="Copy install command"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <rect
+                                    width="14"
+                                    height="14"
+                                    x="8"
+                                    y="8"
+                                    rx="2"
+                                    ry="2"
+                                />
+                                <path
+                                    d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="site-main">
+            <div class="wrap">
+                <section class="section" id="commands">
+                    <h2>Cheatsheet</h2>
+                    <div class="table" role="table" aria-label="SupGIT commands">
+                        <div class="row head" role="row">
+                            <div class="cell" role="columnheader">Command</div>
+                            <div class="cell" role="columnheader">
+                                What it does
+                            </div>
+                        </div>
+
+                        <div class="row" role="row">
+                            <div class="cell mono" role="cell">init</div>
+                            <div class="cell" role="cell">
+                                Runs <span class="mono">git init</span>
+                            </div>
+                        </div>
+                        <div class="row" role="row">
+                            <div class="cell mono" role="cell">
+                                stage [path...]
+                            </div>
+                            <div class="cell" role="cell">
+                                Adds files (defaults to
+                                <span class="mono">.</span>)
+                            </div>
+                        </div>
+                        <div class="row" role="row">
+                            <div class="cell mono" role="cell">
+                                unstage [path...]
+                            </div>
+                            <div class="cell" role="cell">
+                                Runs
+                                <span class="mono">git restore --staged</span>
+                            </div>
+                        </div>
+                        <div class="row" role="row">
+                            <div class="cell mono" role="cell">
+                                status [--short]
+                            </div>
+                            <div class="cell" role="cell">
+                                Shows <span class="mono">git status</span> (or
+                                <span class="mono">-sb</span>)
+                            </div>
+                        </div>
+                        <div class="row" role="row">
+                            <div class="cell mono" role="cell">
+                                log [--short]
+                            </div>
+                            <div class="cell" role="cell">
+                                Compact or detailed log
+                            </div>
+                        </div>
+                        <div class="row" role="row">
+                            <div class="cell mono" role="cell">
+                                diff [path] [--staged]
+                            </div>
+                            <div class="cell" role="cell">
+                                Diff working tree (or staged snapshot)
+                            </div>
+                        </div>
+                        <div class="row" role="row">
+                            <div class="cell mono" role="cell">
+                                branch [-c &lt;name&gt;]
+                            </div>
+                            <div class="cell" role="cell">
+                                Lists branches (interactive) or create new
+                            </div>
+                        </div>
+                        <div class="row" role="row">
+                            <div class="cell mono" role="cell">
+                                push [remote] [branch]
+                            </div>
+                            <div class="cell" role="cell">
+                                Pushes using Git defaults
+                            </div>
+                        </div>
+                        <div class="row" role="row">
+                            <div class="cell mono" role="cell">
+                                pull [remote] [branch]
+                            </div>
+                            <div class="cell" role="cell">
+                                Pulls with optional remote/branch
+                            </div>
+                        </div>
+                        <div class="row" role="row">
+                            <div class="cell mono" role="cell">reset ...</div>
+                            <div class="cell" role="cell">
+                                Discard changes (--all, --staged, --unstaged,
+                                --tracked, --untracked)
+                            </div>
+                        </div>
+                        <div class="row" role="row">
+                            <div class="cell mono" role="cell">
+                                sync [remote] [branch]
+                            </div>
+                            <div class="cell" role="cell">
+                                Fetch, pull, and push in one command
+                            </div>
+                        </div>
+                        <div class="row" role="row">
+                            <div class="cell mono" role="cell">commit ...</div>
+                            <div class="cell" role="cell">
+                                Commit helpers: --all, --push, --amend,
+                                --no-verify
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+        <script>
+            document
+                .querySelector(".copy-btn")
+                .addEventListener("click", async function () {
+                    const code =
+                        this.previousElementSibling.querySelector(
+                            "code",
+                        ).textContent;
+                    await navigator.clipboard.writeText(code);
+                    this.classList.add("copied");
+                    this.innerHTML =
+                        '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+                    setTimeout(() => {
+                        this.classList.remove("copied");
+                        this.innerHTML =
+                            '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+                    }, 2000);
+                });
+        </script>
+    </body>
+</html>
